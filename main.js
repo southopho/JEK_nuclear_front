@@ -209,3 +209,55 @@ setInterval(function () {
 $(document).ready(() => {
     $(initCharts);
 });
+
+let energy = 0;
+let pressure = 0;
+let tmp = 0;
+let reservoir_1_water_level = 100000;
+let reservoir_2_water_level = 100000;
+
+const drain_rate = 5;
+
+const inputs = {
+    blue_button: -1,
+    red_square_button: -1,
+    resevoir_selector_1: -1,
+    resevoir_selector_2: -1,
+    big_red_button: -1,
+    lever: -1,
+    valve: -1,
+};
+
+// $.get("http://95.216.164.138:3001/posts/", function (data) {
+//   console.log(data);
+// });
+
+const drain = () => {
+    let drainage = inputs.valve * drain_rate;
+
+    if (inputs.resevoir_selector_1) {
+        reservoir_1_water_level -= valve * drain_rate;
+    }
+    if (inputs.resevoir_selector_2) {
+        reservoir_2_water_level -= valve * drain_rate;
+    }
+};
+
+const game_logic = () => {
+    if (inputs.lever && energy > inputs.valve) {
+    }
+};
+
+setInterval(function () {
+    $.get("http://95.216.164.138:3001/posts/", function (data) {
+        data.forEach((element) => {
+            inputs[element.id] = element.pressed;
+        });
+
+        // if (data[0].pressed) {
+        //   $("#pirmas").text("Pirmas rod pakeltas");
+        // } else {
+        //   $("#pirmas").text("Pirmas rod nuleistas");
+        // }
+    });
+}, 300);
