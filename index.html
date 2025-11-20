@@ -13,7 +13,7 @@
     #control-panel {
       position: absolute;
       left: 50px;
-      top: 50px;
+      top: 600px;
       width: 260px;
       background: #5f6b59;
       border: 3px solid #222;
@@ -28,7 +28,37 @@
       margin-bottom: 8px;
       font-size: 18px;
     }
+
+    /* Move these around by changing left/top */
+    #energy-chart-container {
+      position: absolute;
+      left: 40px;    /* <- change these to move it */
+      top: 40px;      /* <- change these to move it */
+      width: 700px;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 8px;
+      border-radius: 8px;
+    }
+
+    #status-chart-container {
+      position: absolute;
+      right: 50px;    /* position of second chart */
+      top: 40px;
+      width: 700px;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 8px;
+      border-radius: 8px;
+    }
+
+    #energy-chart,
+    #status-chart {
+      width: 100%;
+      height: 100%;
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <!-- Soviet control panel -->
