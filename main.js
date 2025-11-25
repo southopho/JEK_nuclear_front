@@ -1,25 +1,46 @@
-const MAX_RESERVOIR_CAPACITY = 100;
+const MAX_RESERVOIR_CAPACITY = 200;
 const MAX_POINTS = 20;
+const VALVE_MAX = 4095
+const MAX_ENERGY = 1000;
 
-const drain_rate = 5;
+const drain_rate = 3;
 const fill_rate = 5;
+const cool_rate = 3;
+const heat_rate = 0.2;
+const energy_rate = 0.05;
 
-let energy = 100;
+const rod_1_change = 1;
+const rod_2_change = -0.5;
+
+let reaction_speed = 0;
+let failed = false;
+let score = 0;
+
+let energy = MAX_ENERGY/2;
 let pressure = 0;
 let tmp = 0;
 let reservoir_1_water_level = MAX_RESERVOIR_CAPACITY;
 let reservoir_2_water_level = MAX_RESERVOIR_CAPACITY;
 
 const inputs = {
-    blue_button: -1,
-    red_square_button: -1,
-    resevoir_selector_1: -1,
-    resevoir_selector_2: -1,
-    big_red_button: -1,
-    lever: 1,
+    blue_button: 0,
+    red_square_button: 0,
+    resevoir_selector_1: 0,
+    resevoir_selector_2: 0,
+    big_red_button: 0,
+    lever: 0,
     valve: 0,
-    reactor_rod_1: -1,
-    reactor_rod_2: -1,
+    reactor_rod_1: 0,
+    reactor_rod_2: 0,
+    plug_1: 0,
+    plug_2: 0,
+    plug_3: 0,
+    plug_4: 0,
+    plug_5: 0,
+    plug_6: 0,
+    plug_7: 0,
+    plug_8: 0,
+    "corrector-1": 0,
 };
 
 // history arrays for energy vs time
@@ -35,19 +56,23 @@ let statusChart = null;
 // });
 
 const drain = () => {
-    let drainage = inputs.valve * drain_rate;
+    let drainage = inputs.valve/VALVE_MAX * drain_rate;
+    let draining = false;
 
     if (inputs.resevoir_selector_1 && reservoir_1_water_level > 0) {
         reservoir_1_water_level -= drainage;
+        draining = true;
     }
     if (inputs.resevoir_selector_2 && reservoir_2_water_level > 0) {
         reservoir_2_water_level -= drainage;
+        draining = true;
     }
 
     reservoir_1_water_level =
         reservoir_1_water_level < 0 ? 0 : reservoir_1_water_level;
     reservoir_2_water_level =
         reservoir_2_water_level < 0 ? 0 : reservoir_2_water_level;
+    return draining;
 };
 
 const fill = () => {
@@ -67,14 +92,75 @@ const fill = () => {
     }
 };
 
+const cool = () => {
+    tmp -= 5* (cool_rate * inputs.valve) / VALVE_MAX;
+}
+
+const update_pressure = () => {
+    pressure = (100 * inputs.valve) / VALVE_MAX;
+}
+
+const cooler_consumption = () => {
+    energy -= (cool_rate * 0.01);
+}
+
+const nuclear_core = () => {
+    reaction_speed += rod_1_change * inputs.reactor_rod_1;
+    reaction_speed += rod_2_change * inputs.reactor_rod_2;
+}
+
 const game_logic = () => {
-    if (inputs.lever && energy > inputs.valve) {
-        console.log(reservoir_1_water_level);
-        console.log(reservoir_2_water_level);
-        drain();
+    if (failed) {
+        return;
     }
 
+    if(energy < MAX_ENERGY){
+        energy += reaction_speed * energy_rate;
+    }
+    tmp += reaction_speed * heat_rate;
+    if(reaction_speed < 2 && tmp < 100){
+        tmp += 2 * heat_rate;
+    }
+
+    if(inputs.big_red_button){
+        energy -= 10;
+        score += 10; 
+    }
+
+    nuclear_core();
+
+    if(inputs["corrector-1"]){
+        alert("Įvyko gedimas, sujunktie grandinę reaktoriaus kambaryje!")
+        return;
+    }
+
+    if (inputs.lever && energy > 10) {
+        console.log(reservoir_1_water_level);
+        console.log(reservoir_2_water_level);
+        if(drain()){
+            update_pressure();
+            cool();
+            cooler_consumption();
+        }else{
+            pressure = 0;
+        }
+    }
+    
     fill();
+
+    if(tmp < 0){
+        tmp = 0;
+    }
+
+
+    if(reaction_speed < 0){
+        reaction_speed = 0;
+    }
+
+    if(tmp > 1000){
+        failed = true;
+        alert("JŪS PRALAIMĖJOTE! Reaktorius perkaisto! Balas: " + score);
+    }   
 };
 
 //chart updating brain
@@ -199,7 +285,7 @@ setInterval(function () {
         data.forEach((element) => {
             inputs[element.id] = element.pressed;
         });
-        drain();
+        // drain();
         //game_logic();
         // if (data[0].pressed) {
         //   $("#pirmas").text("Pirmas rod pakeltas");
@@ -209,6 +295,9 @@ setInterval(function () {
 
         game_logic();
         updateHistoryAndCharts();
+        $("#reaction_speed-value").text(reaction_speed.toFixed(2));
+        $("#score").text(score);
+        $("#valve").text(inputs.valve / VALVE_MAX);
     });
 }, 300);
 
